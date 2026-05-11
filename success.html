@@ -8,35 +8,36 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#07080F;color:#E8E0CC;font-family:'EB Garamond',serif;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
-.box{max-width:480px;width:100%}
-.glyph{font-size:52px;margin-bottom:28px;animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:0.7}50%{opacity:1}}
-h1{font-family:'Cinzel',serif;font-size:22px;letter-spacing:0.15em;color:#C9A84C;margin-bottom:16px}
-.msg{font-size:17px;line-height:1.85;color:#A89880;margin-bottom:12px}
-.sub{font-size:13px;color:#7A7060;margin-bottom:36px;line-height:1.6}
-.btn{display:inline-block;font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.2em;color:#07080F;background:#C9A84C;border:none;padding:14px 32px;border-radius:8px;text-decoration:none;cursor:pointer;transition:opacity 0.2s}
-.btn:hover{opacity:0.85}
-.divider{width:40px;height:0.5px;background:#7A6030;margin:0 auto 28px;opacity:0.5}
+.box{max-width:440px;width:100%}
+.ring{width:56px;height:56px;margin:0 auto 24px;border:1px solid rgba(201,168,76,0.3);border-top-color:#C9A84C;border-radius:50%;animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+h1{font-family:'Cinzel',serif;font-size:20px;letter-spacing:0.15em;color:#C9A84C;margin-bottom:12px}
+p{font-size:15px;line-height:1.8;color:#A89880;margin-bottom:8px}
+.sub{font-size:12px;color:#7A7060;margin-top:16px}
 </style>
 </head>
 <body>
 <div class="box">
-  <div class="glyph">✦</div>
+  <div class="ring"></div>
   <h1 id="title">Payment Confirmed</h1>
-  <div class="divider"></div>
-  <p class="msg" id="msg">Your full destiny reading is now unlocked.</p>
-  <p class="sub" id="sub">Return to Ming Li to discover everything your birth chart has been waiting to reveal. A receipt has been sent to your email.</p>
-  <a href="/" class="btn" id="btn">Return to Ming Li →</a>
+  <p id="msg">Preparing your complete destiny reading…</p>
+  <p class="sub" id="sub">You will be redirected in a moment.</p>
 </div>
 <script>
-  const lang = (navigator.language || 'en').startsWith('fr') ? 'fr' : 'en';
+  const lang = localStorage.getItem('mingli_lang') || 'en';
+  const plan = localStorage.getItem('mingli_plan') || 'single';
+
   if (lang === 'fr') {
     document.getElementById('title').textContent = 'Paiement Confirmé';
-    document.getElementById('msg').textContent   = 'Votre rapport complet est maintenant débloqué.';
-    document.getElementById('sub').textContent   = 'Retournez sur Ming Li pour découvrir tout ce que votre thème natal révèle. Un reçu a été envoyé à votre adresse e-mail.';
-    document.getElementById('btn').textContent   = 'Retour à Ming Li →';
+    document.getElementById('msg').textContent   = 'Préparation de votre lecture complète…';
+    document.getElementById('sub').textContent   = 'Vous allez être redirigé dans un instant.';
     document.documentElement.lang = 'fr';
   }
+
+  // Redirect to report page after 1.5s
+  setTimeout(() => {
+    window.location.href = '/report.html';
+  }, 1500);
 </script>
 </body>
 </html>

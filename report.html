@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ming Li · Your Full Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;1,400&family=Noto+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#C9A84C;--gold-dim:#7A6030;--deep:#07080F;--deep2:#0D0F1A;--deep3:#131629;--text:#E8E0CC;--text-dim:#7A7060;--text-mid:#A89880;--radius:14px;--radius-sm:8px}
+body{background:var(--deep);color:var(--text);font-family:'Noto Sans',sans-serif;font-weight:300;min-height:100vh;-webkit-font-smoothing:antialiased}
+.site-header{background:rgba(7,8,15,0.97);border-bottom:0.5px solid rgba(201,168,76,0.1);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:'Cinzel',serif;font-size:16px;color:var(--gold);letter-spacing:0.1em;text-decoration:none}
+.header-right{display:flex;align-items:center;gap:12px}
+.plan-badge{font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.15em;padding:4px 10px;border-radius:20px;text-transform:uppercase}
+.plan-badge.single{color:var(--gold-dim);border:0.5px solid var(--gold-dim)}
+.plan-badge.monthly{color:#6EE7B7;border:0.5px solid #6EE7B7}
+.plan-badge.yearly{color:#C9A84C;border:0.5px solid var(--gold);background:rgba(201,168,76,0.08)}
+.print-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.14em;color:var(--gold-dim);border:0.5px solid var(--gold-dim);background:none;padding:5px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s}
+.print-btn:hover{color:var(--gold);border-color:var(--gold)}
+.home-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.14em;color:var(--text-dim);border:none;background:none;padding:5px 10px;cursor:pointer;text-decoration:none}
+.home-btn:hover{color:var(--text)}
+
+.wrap{max-width:720px;margin:0 auto;padding:40px 24px 80px}
+
+/* Loading */
+.loading-screen{text-align:center;padding:80px 24px}
+.loading-ring{width:60px;height:60px;margin:0 auto 24px;border:1px solid rgba(201,168,76,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-family:'Cinzel',serif;font-size:14px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px}
+.loading-sub{font-size:13px;color:var(--text-dim);line-height:1.7}
+.loading-steps{margin-top:24px;display:flex;flex-direction:column;gap:8px;text-align:left;max-width:320px;margin-left:auto;margin-right:auto}
+.loading-step{font-size:12px;color:var(--text-dim);padding:8px 14px;background:var(--deep2);border-radius:var(--radius-sm);border:0.5px solid rgba(201,168,76,0.08);display:flex;align-items:center;gap:8px;transition:all 0.4s}
+.loading-step.done{color:var(--gold);border-color:rgba(201,168,76,0.2)}
+.loading-step.active{color:var(--text);border-color:rgba(201,168,76,0.3)}
+.step-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:all 0.4s}
+.loading-step.done .step-dot{background:var(--gold)}
+.loading-step.active .step-dot{background:#fff;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* Report */
+.report{display:none}
+.report-header{text-align:center;padding:0 0 36px;border-bottom:0.5px solid rgba(201,168,76,0.12);margin-bottom:40px}
+.report-title{font-family:'Cinzel',serif;font-size:clamp(20px,4vw,30px);font-weight:400;letter-spacing:0.12em;color:#fff;margin-bottom:8px}
+.report-sub{font-family:'EB Garamond',serif;font-size:15px;font-style:italic;color:var(--text-mid);margin-bottom:16px}
+.report-meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.meta-chip{font-size:11px;color:var(--text-dim);background:var(--deep2);border:0.5px solid rgba(201,168,76,0.1);padding:4px 12px;border-radius:20px}
+
+.section{margin-bottom:36px;background:var(--deep2);border:0.5px solid rgba(201,168,76,0.15);border-radius:var(--radius);overflow:hidden}
+.section-header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:0.5px solid rgba(201,168,76,0.1)}
+.section-icon{font-size:18px}
+.section-title{font-family:'Cinzel',serif;font-size:12px;letter-spacing:0.18em;color:var(--gold);text-transform:uppercase}
+.section-body{padding:20px;font-family:'EB Garamond',serif;font-size:16px;line-height:1.85;color:var(--text)}
+.section-body .highlight{color:var(--gold)}
+.section-body p{margin-bottom:14px}
+.section-body p:last-child{margin-bottom:0}
+.section-loading{padding:20px;color:var(--text-dim);font-size:13px;display:flex;align-items:center;gap:8px}
+.mini-ring{width:14px;height:14px;border:1px solid rgba(201,168,76,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
+
+/* Chart summary */
+.chart-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+@media(max-width:480px){.chart-grid{grid-template-columns:repeat(2,1fr)}}
+.chart-pillar{background:var(--deep3);border:0.5px solid rgba(201,168,76,0.1);border-radius:var(--radius-sm);padding:10px 8px;text-align:center}
+.pillar-label{font-family:'Cinzel',serif;font-size:8px;letter-spacing:0.15em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px}
+.pillar-stem{font-size:18px;color:var(--gold);margin-bottom:2px}
+.pillar-branch{font-size:14px;color:var(--text-mid)}
+
+/* Action bar */
+.action-bar{background:var(--deep2);border:0.5px solid rgba(201,168,76,0.15);border-radius:var(--radius);padding:20px 24px;margin-bottom:32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.action-bar-text{font-size:13px;color:var(--text-mid);line-height:1.5}
+.action-bar-text strong{color:var(--text);font-weight:400}
+.action-btns{display:flex;gap:10px;flex-wrap:wrap}
+.dl-btn{font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.14em;padding:9px 18px;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.2s;border:0.5px solid var(--gold);color:var(--gold);background:transparent}
+.dl-btn:hover{background:rgba(201,168,76,0.08)}
+.dl-btn.primary{background:var(--gold);color:#07080F;font-weight:600}
+.dl-btn.primary:hover{opacity:0.88}
+
+/* Chat */
+.chat-section{margin-bottom:36px}
+.chat-title{font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.18em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:12px}
+.chat-box{background:var(--deep2);border:0.5px solid rgba(201,168,76,0.15);border-radius:var(--radius);overflow:hidden}
+.chat-messages{min-height:80px;max-height:320px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:85%;padding:10px 14px;border-radius:10px;font-family:'EB Garamond',serif;font-size:15px;line-height:1.65}
+.chat-msg.user{background:rgba(201,168,76,0.1);border:0.5px solid rgba(201,168,76,0.2);align-self:flex-end;color:var(--text)}
+.chat-msg.ai{background:var(--deep3);border:0.5px solid rgba(255,255,255,0.05);align-self:flex-start;color:var(--text-mid)}
+.chat-msg.ai .highlight{color:var(--gold)}
+.chat-input-row{display:flex;gap:0;border-top:0.5px solid rgba(201,168,76,0.1)}
+.chat-input{flex:1;background:transparent;border:none;padding:12px 16px;color:var(--text);font-family:'Noto Sans',sans-serif;font-size:13px;outline:none}
+.chat-input::placeholder{color:var(--text-dim)}
+.chat-send{font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.12em;background:var(--gold);color:#07080F;border:none;padding:12px 18px;cursor:pointer;font-weight:600;transition:opacity 0.2s;flex-shrink:0}
+.chat-send:hover{opacity:0.88}
+.chat-limit{font-size:11px;color:var(--text-dim);text-align:center;padding:8px;font-style:italic}
+
+/* Upgrade prompt */
+.upgrade-prompt{background:rgba(201,168,76,0.05);border:0.5px solid rgba(201,168,76,0.2);border-radius:var(--radius);padding:20px 24px;text-align:center;margin-bottom:32px}
+.upgrade-prompt h3{font-family:'Cinzel',serif;font-size:13px;letter-spacing:0.16em;color:var(--gold);margin-bottom:8px;text-transform:uppercase}
+.upgrade-prompt p{font-size:13px;color:var(--text-mid);line-height:1.6;margin-bottom:16px}
+.upgrade-link{font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.14em;color:var(--gold);border:0.5px solid var(--gold);padding:8px 20px;border-radius:20px;text-decoration:none;transition:all 0.2s;display:inline-block}
+.upgrade-link:hover{background:rgba(201,168,76,0.08)}
+
+/* Error */
+.error-screen{text-align:center;padding:80px 24px}
+.error-icon{font-size:36px;margin-bottom:16px;opacity:0.5}
+.error-title{font-family:'Cinzel',serif;font-size:16px;color:var(--text-dim);margin-bottom:8px;letter-spacing:0.1em}
+.error-sub{font-size:13px;color:var(--text-dim);margin-bottom:24px}
+
+@media print{
+  .site-header,.action-bar,.chat-section,.upgrade-prompt,.print-btn{display:none!important}
+  body{background:#fff;color:#000}
+  .section{border:1px solid #ddd;background:#fff}
+  .section-title{color:#333}
+  .section-body{color:#000}
+  .section-body .highlight{color:#8B6914}
+  .report-title,.report-sub{color:#000}
+  .meta-chip{background:#f5f5f5;color:#666;border-color:#ddd}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="logo" href="/">命理 · MING LI</a>
+  <div class="header-right">
+    <span class="plan-badge" id="planBadge"></span>
+    <button class="print-btn" onclick="window.print()" id="printBtn" style="display:none">⬇ Save / Print</button>
+    <a class="home-btn" href="/">← Home</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- Loading screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-ring"></div>
+    <div class="loading-title" id="loadingTitle">Preparing Your Reading</div>
+    <div class="loading-sub" id="loadingSub">Our system is consulting 3,000 years of classical Chinese astrology across four schools of thought. This takes about 30 seconds.</div>
+    <div class="loading-steps" id="loadingSteps">
+      <div class="loading-step active" id="step1"><span class="step-dot"></span><span id="step1txt">Calculating your Four Pillars (BaZi) chart…</span></div>
+      <div class="loading-step" id="step2"><span class="step-dot"></span><span id="step2txt">Cross-validating with Zi Wei Dou Shu…</span></div>
+      <div class="loading-step" id="step3"><span class="step-dot"></span><span id="step3txt">Analysing your current 10-year cycle…</span></div>
+      <div class="loading-step" id="step4"><span class="step-dot"></span><span id="step4txt">Composing your personalised report…</span></div>
+    </div>
+  </div>
+
+  <!-- Error screen -->
+  <div class="error-screen" id="errorScreen" style="display:none">
+    <div class="error-icon">✦</div>
+    <div class="error-title" id="errorTitle">No reading data found</div>
+    <div class="error-sub" id="errorSub">It looks like your session has expired. Please return to the home page and try again.</div>
+    <a href="/" class="upgrade-link">Return to Ming Li</a>
+  </div>
+
+  <!-- Report -->
+  <div class="report" id="report">
+
+    <div class="report-header">
+      <h1 class="report-title" id="reportTitle">Your Complete Destiny Reading</h1>
+      <p class="report-sub" id="reportSub">BaZi · Zi Wei Dou Shu · Four-School Cross-Validation</p>
+      <div class="report-meta" id="reportMeta"></div>
+    </div>
+
+    <div class="action-bar" id="actionBar">
+      <div class="action-bar-text" id="actionBarText">
+        <strong>Your report is ready.</strong> Save it as PDF or print for your records.
+      </div>
+      <div class="action-btns">
+        <button class="dl-btn primary" onclick="window.print()">⬇ Save as PDF</button>
+        <button class="dl-btn" onclick="copyReport()">Copy Text</button>
+      </div>
+    </div>
+
+    <!-- Dynamic sections populated by JS -->
+    <div id="reportSections"></div>
+
+    <!-- Chat -->
+    <div class="chat-section" id="chatSection">
+      <div class="chat-title" id="chatTitle">Ask Ming Li About Your Reading</div>
+      <div class="chat-box">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-msg ai" id="chatWelcome">Your report is ready. Ask me anything about your destiny reading — career timing, relationship patterns, wealth cycles, or anything else you'd like to understand more deeply.</div>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="chatInput" placeholder="Ask about your reading…" />
+          <button class="chat-send" id="chatSend">ASK</button>
+        </div>
+        <div class="chat-limit" id="chatLimit"></div>
+      </div>
+    </div>
+
+    <!-- Upgrade prompt (single users only) -->
+    <div class="upgrade-prompt" id="upgradePrompt" style="display:none">
+      <h3 id="upgradeTitle">Want Monthly Reports?</h3>
+      <p id="upgradeText">Monthly members receive a new personalised report every month, can revisit all past reports, and get unlimited AI conversation to explore their reading in depth.</p>
+      <a href="/" class="upgrade-link" id="upgradeLink">View Plans →</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Language detection ─────────────────────────────────
+const lang = localStorage.getItem('mingli_lang') || 'en';
+document.documentElement.lang = lang;
+
+// ── Translations ───────────────────────────────────────
+const T = {
+  en: {
+    loadingTitle: 'Preparing Your Reading',
+    loadingSub: 'Consulting 3,000 years of classical Chinese astrology across four schools of thought. This takes about 30 seconds.',
+    steps: [
+      'Calculating your Four Pillars (BaZi) chart…',
+      'Cross-validating with Zi Wei Dou Shu…',
+      'Analysing your current 10-year cycle…',
+      'Composing your personalised report…'
+    ],
+    reportTitle: 'Your Complete Destiny Reading',
+    reportSub: 'BaZi · Zi Wei Dou Shu · Four-School Cross-Validation',
+    actionBarText: '<strong>Your report is ready.</strong> Save it as PDF or print for your records.',
+    saveBtn: '⬇ Save as PDF',
+    copyBtn: 'Copy Text',
+    chatTitle: 'Ask Ming Li About Your Reading',
+    chatWelcome: 'Your report is ready. Ask me anything about your destiny reading — career timing, relationship patterns, wealth cycles, or anything else you\'d like to understand more deeply.',
+    chatPlaceholder: 'Ask about your reading…',
+    chatSend: 'ASK',
+    upgradeTitle: 'Want Monthly Reports?',
+    upgradeText: 'Monthly members receive a new personalised report every month, can revisit all past reports, and get unlimited AI conversation to explore their reading in depth.',
+    upgradeLink: 'View Plans →',
+    planLabels: { single: 'Single Report', monthly: 'Monthly Member', yearly: 'Annual VIP' },
+    sections: [
+      { key: 'personality', icon: '☿', title: 'Personality & Core Nature' },
+      { key: 'career',      icon: '♃', title: 'Career & Life Purpose' },
+      { key: 'wealth',      icon: '☉', title: 'Wealth & Financial Destiny' },
+      { key: 'love',        icon: '♀', title: 'Love & Relationships' },
+      { key: 'health',      icon: '♄', title: 'Health & Vitality' },
+      { key: 'yearly',      icon: '♂', title: 'The Year Ahead — 2025/2026' }
+    ],
+    errorTitle: 'No reading data found',
+    errorSub: 'It looks like your session has expired. Please return to the home page and try again.',
+    chatLimitSingle: 'Single report includes 5 AI questions. Upgrade to Monthly for unlimited conversation.',
+    chatLimitMonthly: 'Monthly members get 30 AI questions per month.',
+    chatLimitYearly: 'Annual VIP members have unlimited AI conversation.',
+    generating: 'Generating…',
+    noData: 'Birth information not found. Please return to the home page.',
+    metaLabels: { dob: 'Born', gender: 'Gender', plan: 'Plan' }
+  },
+  fr: {
+    loadingTitle: 'Préparation de votre lecture',
+    loadingSub: 'Consultation de 3 000 ans d\'astrologie chinoise classique selon quatre écoles. Cela prend environ 30 secondes.',
+    steps: [
+      'Calcul de vos Quatre Piliers (BaZi)…',
+      'Validation croisée avec Zi Wei Dou Shu…',
+      'Analyse de votre cycle de 10 ans en cours…',
+      'Rédaction de votre rapport personnalisé…'
+    ],
+    reportTitle: 'Votre Lecture Complète du Destin',
+    reportSub: 'BaZi · Zi Wei Dou Shu · Validation Croisée Quatre Écoles',
+    actionBarText: '<strong>Votre rapport est prêt.</strong> Enregistrez-le en PDF ou imprimez-le.',
+    saveBtn: '⬇ Enregistrer en PDF',
+    copyBtn: 'Copier le texte',
+    chatTitle: 'Posez une question à Ming Li',
+    chatWelcome: 'Votre rapport est prêt. Posez-moi n\'importe quelle question sur votre lecture — timing de carrière, schémas relationnels, cycles de richesse, ou tout ce que vous souhaitez approfondir.',
+    chatPlaceholder: 'Posez une question sur votre lecture…',
+    chatSend: 'ENVOYER',
+    upgradeTitle: 'Des rapports chaque mois ?',
+    upgradeText: 'Les abonnés mensuels reçoivent un nouveau rapport personnalisé chaque mois, peuvent revoir tous leurs rapports passés et bénéficient d\'une conversation IA illimitée.',
+    upgradeLink: 'Voir les formules →',
+    planLabels: { single: 'Rapport Unique', monthly: 'Membre Mensuel', yearly: 'VIP Annuel' },
+    sections: [
+      { key: 'personality', icon: '☿', title: 'Personnalité & Nature Profonde' },
+      { key: 'career',      icon: '♃', title: 'Carrière & Vocation' },
+      { key: 'wealth',      icon: '☉', title: 'Richesse & Destin Financier' },
+      { key: 'love',        icon: '♀', title: 'Amour & Relations' },
+      { key: 'health',      icon: '♄', title: 'Santé & Vitalité' },
+      { key: 'yearly',      icon: '♂', title: 'L\'Année à Venir — 2025/2026' }
+    ],
+    errorTitle: 'Aucune donnée de lecture trouvée',
+    errorSub: 'Votre session a expiré. Veuillez retourner à la page d\'accueil et recommencer.',
+    chatLimitSingle: 'Le rapport unique inclut 5 questions IA. Passez au mensuel pour une conversation illimitée.',
+    chatLimitMonthly: 'Les membres mensuels ont 30 questions IA par mois.',
+    chatLimitYearly: 'Les membres VIP annuels ont une conversation IA illimitée.',
+    generating: 'Génération…',
+    noData: 'Informations de naissance introuvables. Veuillez retourner à la page d\'accueil.',
+    metaLabels: { dob: 'Né(e) le', gender: 'Genre', plan: 'Formule' }
+  }
+};
+
+const t = T[lang];
+
+// ── Apply translations to static elements ──────────────
+function applyStaticTranslations() {
+  document.getElementById('loadingTitle').textContent = t.loadingTitle;
+  document.getElementById('loadingSub').textContent   = t.loadingSub;
+  ['step1txt','step2txt','step3txt','step4txt'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t.steps[i];
+  });
+  document.getElementById('reportTitle').textContent  = t.reportTitle;
+  document.getElementById('reportSub').textContent    = t.reportSub;
+  document.getElementById('actionBarText').innerHTML  = t.actionBarText;
+  document.getElementById('chatTitle').textContent    = t.chatTitle;
+  document.getElementById('chatWelcome').textContent  = t.chatWelcome;
+  document.getElementById('chatInput').placeholder    = t.chatPlaceholder;
+  document.getElementById('chatSend').textContent     = t.chatSend;
+  document.getElementById('upgradeTitle').textContent = t.upgradeTitle;
+  document.getElementById('upgradeText').textContent  = t.upgradeText;
+  document.getElementById('upgradeLink').textContent  = t.upgradeLink;
+  document.getElementById('errorTitle').textContent   = t.errorTitle;
+  document.getElementById('errorSub').textContent     = t.errorSub;
+}
+applyStaticTranslations();
+
+// ── Load user data ────────────────────────────────────
+const userData = JSON.parse(localStorage.getItem('mingli_reading_data') || 'null');
+const plan     = localStorage.getItem('mingli_plan') || 'single';
+
+if (!userData || !userData.birthday) {
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('errorScreen').style.display   = 'block';
+  document.getElementById('errorTitle').textContent = t.errorTitle;
+  document.getElementById('errorSub').textContent   = t.noData;
+  throw new Error('No user data');
+}
+
+// ── Plan badge ─────────────────────────────────────────
+const badge = document.getElementById('planBadge');
+badge.textContent = t.planLabels[plan] || plan;
+badge.className   = 'plan-badge ' + plan;
+
+// ── Report meta ────────────────────────────────────────
+function buildMeta() {
+  const meta = document.getElementById('reportMeta');
+  const genderLabel = userData.gender === 'male'
+    ? (lang === 'fr' ? 'Homme' : 'Male')
+    : (lang === 'fr' ? 'Femme' : 'Female');
+  meta.innerHTML = [
+    `<span class="meta-chip">${t.metaLabels.dob}: ${userData.birthday}</span>`,
+    `<span class="meta-chip">${userData.birthtime} · ${userData.location}</span>`,
+    `<span class="meta-chip">${t.metaLabels.gender}: ${genderLabel}</span>`,
+    `<span class="meta-chip">${t.metaLabels.plan}: ${t.planLabels[plan]}</span>`
+  ].join('');
+}
+
+// ── Loading step animation ────────────────────────────
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step' + i);
+    if (!el) continue;
+    if (i < n)  { el.classList.remove('active'); el.classList.add('done'); }
+    if (i === n){ el.classList.add('active'); el.classList.remove('done'); }
+    if (i > n)  { el.classList.remove('active','done'); }
+  }
+}
+
+// ── Build report section skeletons ───────────────────
+function buildSections() {
+  const container = document.getElementById('reportSections');
+  t.sections.forEach(s => {
+    container.insertAdjacentHTML('beforeend', `
+      <div class="section" id="section-${s.key}">
+        <div class="section-header">
+          <span class="section-icon">${s.icon}</span>
+          <span class="section-title">${s.title}</span>
+        </div>
+        <div class="section-body" id="body-${s.key}">
+          <div class="section-loading"><div class="mini-ring"></div> ${t.generating}</div>
+        </div>
+      </div>`);
+  });
+}
+
+// ── Fetch one section ─────────────────────────────────
+async function fetchSection(topic) {
+  const res = await fetch('/api/reading-full', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...userData, topic, lang, plan })
+  });
+  const data = await res.json();
+  return data.content || '';
+}
+
+// ── Render section ────────────────────────────────────
+function renderSection(topic, html) {
+  const body = document.getElementById('body-' + topic);
+  if (!body) return;
+  // Wrap paragraphs
+  const paragraphs = html.split(/\n\n+/).filter(p => p.trim());
+  body.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+}
+
+// ── Chat state ────────────────────────────────────────
+let chatCount = 0;
+const chatLimits = { single: 5, monthly: 30, yearly: 9999 };
+const chatLimit  = chatLimits[plan] || 5;
+let reportContext = '';
+
+function updateChatLimit() {
+  const el = document.getElementById('chatLimit');
+  if (plan === 'yearly') {
+    el.textContent = t.chatLimitYearly;
+  } else if (plan === 'monthly') {
+    el.textContent = `${t.chatLimitMonthly} (${chatLimit - chatCount} remaining)`;
+  } else {
+    el.textContent = `${t.chatLimitSingle} (${chatLimit - chatCount} remaining)`;
+  }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg   = input.value.trim();
+  if (!msg) return;
+  if (chatCount >= chatLimit) return;
+
+  input.value = '';
+  chatCount++;
+  updateChatLimit();
+
+  const messages = document.getElementById('chatMessages');
+  messages.insertAdjacentHTML('beforeend',
+    `<div class="chat-msg user">${msg}</div>`);
+
+  const thinking = document.createElement('div');
+  thinking.className = 'chat-msg ai';
+  thinking.innerHTML = '<div class="mini-ring" style="display:inline-block;margin-right:6px"></div>';
+  messages.appendChild(thinking);
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question: msg,
+        context: reportContext,
+        userData,
+        lang,
+        plan
+      })
+    });
+    const data = await res.json();
+    thinking.innerHTML = data.answer || '…';
+  } catch (e) {
+    thinking.innerHTML = lang === 'fr'
+      ? 'Désolé, une erreur est survenue. Veuillez réessayer.'
+      : 'Sorry, something went wrong. Please try again.';
+  }
+  messages.scrollTop = messages.scrollHeight;
+}
+
+document.getElementById('chatSend').addEventListener('click', sendChat);
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendChat();
+});
+
+// ── Copy report text ──────────────────────────────────
+function copyReport() {
+  const text = Array.from(document.querySelectorAll('.section-body'))
+    .map(el => el.innerText).join('\n\n---\n\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.dl-btn:not(.primary)');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+// ── Main: generate all sections ───────────────────────
+async function generateReport() {
+  buildSections();
+  buildMeta();
+
+  const stepTiming = [0, 4000, 10000, 18000];
+  stepTiming.forEach((ms, i) => setTimeout(() => setStep(i + 1), ms));
+
+  // Fetch all 6 sections concurrently
+  const results = {};
+  const promises = t.sections.map(async s => {
+    try {
+      results[s.key] = await fetchSection(s.key);
+    } catch (e) {
+      results[s.key] = lang === 'fr'
+        ? 'Impossible de générer cette section pour le moment. Veuillez réessayer.'
+        : 'Unable to generate this section right now. Please try again.';
+    }
+  });
+
+  await Promise.all(promises);
+
+  // Build report context for chat
+  reportContext = t.sections.map(s =>
+    `[${s.title}]\n${results[s.key]}`
+  ).join('\n\n');
+
+  // Render sections
+  t.sections.forEach(s => renderSection(s.key, results[s.key]));
+
+  // Show report
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('report').style.display        = 'block';
+  document.getElementById('printBtn').style.display      = 'block';
+
+  // Show upgrade prompt for single users
+  if (plan === 'single') {
+    document.getElementById('upgradePrompt').style.display = 'block';
+  }
+
+  updateChatLimit();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+generateReport();
+</script>
+</body>
+</html>
