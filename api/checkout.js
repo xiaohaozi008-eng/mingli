@@ -50,7 +50,7 @@ module.exports = async function handler(req, res) {
       payment_method_types: ['card'],
       mode: mode,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: siteUrl + '/success.html?session_id={CHECKOUT_SESSION_ID}',
+      success_url: siteUrl + '/success.html',
       cancel_url:  siteUrl + '/',
       locale: langKey === 'fr' ? 'fr' : 'en'
     });
