@@ -254,11 +254,31 @@ canvas#stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:n
     <div class="form-grid">
       <div class="field">
         <label id="t-label-dob">Date of Birth</label>
-        <input type="date" id="birthday" lang="en-US" placeholder="YYYY-MM-DD"/>
+        <div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr;gap:6px">
+          <select id="bYear" style="background:var(--deep3);border:0.5px solid rgba(201,168,76,0.12);border-radius:var(--radius-sm);color:var(--text);font-family:'Noto Sans',sans-serif;font-size:13px;font-weight:300;padding:11px 8px;outline:none;-webkit-appearance:none;appearance:none;width:100%">
+            <option value="" disabled selected id="t-year-ph">Year</option>
+          </select>
+          <select id="bMonth" style="background:var(--deep3);border:0.5px solid rgba(201,168,76,0.12);border-radius:var(--radius-sm);color:var(--text);font-family:'Noto Sans',sans-serif;font-size:13px;font-weight:300;padding:11px 8px;outline:none;-webkit-appearance:none;appearance:none;width:100%">
+            <option value="" disabled selected id="t-month-ph">Month</option>
+          </select>
+          <select id="bDay" style="background:var(--deep3);border:0.5px solid rgba(201,168,76,0.12);border-radius:var(--radius-sm);color:var(--text);font-family:'Noto Sans',sans-serif;font-size:13px;font-weight:300;padding:11px 8px;outline:none;-webkit-appearance:none;appearance:none;width:100%">
+            <option value="" disabled selected id="t-day-ph">Day</option>
+          </select>
+        </div>
+        <!-- Hidden field stores combined value for API -->
+        <input type="hidden" id="birthday"/>
       </div>
       <div class="field">
         <label id="t-label-tob">Time of Birth</label>
-        <input type="time" id="birthtime"/>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <select id="tHour" style="background:var(--deep3);border:0.5px solid rgba(201,168,76,0.12);border-radius:var(--radius-sm);color:var(--text);font-family:'Noto Sans',sans-serif;font-size:13px;font-weight:300;padding:11px 8px;outline:none;-webkit-appearance:none;appearance:none;width:100%">
+            <option value="" disabled selected id="t-hour-ph">Hour</option>
+          </select>
+          <select id="tMinute" style="background:var(--deep3);border:0.5px solid rgba(201,168,76,0.12);border-radius:var(--radius-sm);color:var(--text);font-family:'Noto Sans',sans-serif;font-size:13px;font-weight:300;padding:11px 8px;outline:none;-webkit-appearance:none;appearance:none;width:100%">
+            <option value="" disabled selected id="t-min-ph">Min</option>
+          </select>
+        </div>
+        <input type="hidden" id="birthtime"/>
       </div>
       <div class="field">
         <label id="t-label-gender">Gender</label>
@@ -727,34 +747,14 @@ function setLang(lang) {
   document.getElementById('btn-en').classList.toggle('active', lang === 'en');
   document.getElementById('btn-fr').classList.toggle('active', lang === 'fr');
 
-  const D = DATA[lang];
-
-  // Plain text elements by id
-  const textKeys = [
-    'nav-home','nav-reviews','nav-about','login-btn',
-    'hero-title','hero-sub','hero-tag',
-    'form-title','label-dob','label-tob','label-gender','label-city',
-    'opt-select','opt-male','opt-female',
-    'topic-label','topic-personality','topic-career','topic-wealth','topic-love','topic-health','topic-yearly',
-    'cta','loading','result-tag','free-badge',
-    'login-cta-text','login-cta-btn',
-    'locked-header','mini-reviews-title',
-    'pricing-title','early-badge',
-    'plan-free','desc-free','trust-free','btn-free',
-    'plan-single','desc-single','trust-single','btn-single',
-    'popular','plan-monthly','desc-monthly','trust-monthly','btn-monthly',
-    'plan-yearly','desc-yearly','trust-yearly','btn-yearly',
-    'trust-1','trust-2','trust-3',
-    'footer-tagline','disclaimer',
-    'reviews-title','reviews-sub',
-    'about-title','about-sub'
-  ];
-  textKeys.forEach(key => {
+  Object.keys(DATA[lang]).forEach(key => {
+    if (key === 'locked_items' || key === 'validation' || key === 'demo-preview'
+      || key === 'mini_reviews' || key === 'all_reviews' || key === 'about_cards' || key === 'about_trust') return;
     const el = document.getElementById('t-' + key);
-    if (el && D[key] !== undefined) el.textContent = D[key];
+    if (el) el.textContent = DATA[lang][key];
   });
 
-  // Prices (need span for suffix)
+  // Price amounts
   ['free','single','monthly','yearly'].forEach(plan => {
     const el = document.getElementById('t-price-' + plan);
     if (!el) return;
@@ -770,19 +770,20 @@ function setLang(lang) {
   // Nav links text
   ['home','reviews','about'].forEach(p => {
     const el = document.getElementById('nav-' + p);
-    if (el) el.textContent = D['nav-' + p];
+    if (el) el.textContent = DATA[lang]['nav-' + p];
   });
   const lb = document.getElementById('loginBtn');
-  if (lb) lb.textContent = D['login-btn'];
+  if (lb) lb.textContent = DATA[lang]['login-btn'];
+
+  // Dropdown placeholders
+  updateDropdownPlaceholders(lang);
 
   // Mini reviews
   renderMiniReviews();
 
-  // Re-render locked items if result is visible
   const rc = document.getElementById('resultCard');
   if (rc && rc.style.display !== 'none') renderLockedItems();
 
-  // Re-render dynamic pages if open
   if (CURRENT_PAGE === 'reviews') renderReviews();
   if (CURRENT_PAGE === 'about')   renderAbout();
 }
@@ -966,6 +967,85 @@ async function initiatePayment(plan) {
       : 'Unable to connect to payment. Please try again.');
     console.error('Payment error:', e.message);
   }
+}
+
+// ── Date & Time dropdowns ─────────────────────────────────
+(function initDateDropdowns() {
+  // Year: 1924 → current year
+  const yearSel = document.getElementById('bYear');
+  const curYear = new Date().getFullYear();
+  for (let y = curYear; y >= 1924; y--) {
+    const o = document.createElement('option');
+    o.value = String(y); o.textContent = String(y);
+    yearSel.appendChild(o);
+  }
+
+  // Month: 1–12
+  const monthSel = document.getElementById('bMonth');
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  for (let m = 1; m <= 12; m++) {
+    const o = document.createElement('option');
+    o.value = String(m).padStart(2,'0');
+    o.textContent = m + ' — ' + monthNames[m-1];
+    monthSel.appendChild(o);
+  }
+
+  // Day: 1–31
+  const daySel = document.getElementById('bDay');
+  for (let d = 1; d <= 31; d++) {
+    const o = document.createElement('option');
+    o.value = String(d).padStart(2,'0'); o.textContent = String(d);
+    daySel.appendChild(o);
+  }
+
+  // Hour: 0–23
+  const hourSel = document.getElementById('tHour');
+  for (let h = 0; h <= 23; h++) {
+    const o = document.createElement('option');
+    const hh = String(h).padStart(2,'0');
+    o.value = hh; o.textContent = hh + ':00';
+    hourSel.appendChild(o);
+  }
+
+  // Minute: 00, 15, 30, 45 (+ allow any via sync)
+  const minSel = document.getElementById('tMinute');
+  [0,5,10,15,20,25,30,35,40,45,50,55].forEach(m => {
+    const o = document.createElement('option');
+    const mm = String(m).padStart(2,'0');
+    o.value = mm; o.textContent = mm;
+    minSel.appendChild(o);
+  });
+
+  // Sync hidden fields on any change
+  function syncDate() {
+    const y = yearSel.value, mo = monthSel.value, d = daySel.value;
+    document.getElementById('birthday').value = (y && mo && d) ? `${y}-${mo}-${d}` : '';
+  }
+  function syncTime() {
+    const h = hourSel.value, m = minSel.value;
+    document.getElementById('birthtime').value = (h && m) ? `${h}:${m}` : '';
+  }
+  yearSel.addEventListener('change', syncDate);
+  monthSel.addEventListener('change', syncDate);
+  daySel.addEventListener('change', syncDate);
+  hourSel.addEventListener('change', syncTime);
+  minSel.addEventListener('change', syncTime);
+})();
+
+// Update dropdown placeholders on language switch
+function updateDropdownPlaceholders(lang) {
+  const ph = {
+    en: { year:'Year', month:'Month', day:'Day', hour:'Hour', min:'Min' },
+    fr: { year:'Année', month:'Mois', day:'Jour', hour:'Heure', min:'Min' }
+  }[lang] || { year:'Year', month:'Month', day:'Day', hour:'Hour', min:'Min' };
+  const map = {
+    't-year-ph': ph.year, 't-month-ph': ph.month, 't-day-ph': ph.day,
+    't-hour-ph': ph.hour, 't-min-ph': ph.min
+  };
+  Object.entries(map).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  });
 }
 
 // ── Init ──────────────────────────────────────────────────
