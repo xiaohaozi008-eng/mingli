@@ -1,56 +1,64 @@
-const Stripe = require('stripe');
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+ 
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+ 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+ 
   const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-
+ 
+  // Stripe not yet configured — return graceful message
   if (!STRIPE_SECRET_KEY) {
-    return res.status(200).json({ url: null, error: 'Stripe not configured yet' });
+    return res.status(200).json({ url: null, message: 'Stripe not configured yet' });
   }
-
-  const { plan, lang } = req.body;
-
-  const PRICE_MAP = {
+ 
+  var plan = (req.body || {}).plan || '';
+  var lang = (req.body || {}).lang || 'en';
+ 
+  var PRICE_MAP = {
     en: {
-      single:  process.env.PRICE_SINGLE_USD,
-      monthly: process.env.PRICE_MONTHLY_USD,
-      yearly:  process.env.PRICE_YEARLY_USD,
+      single:  process.env.PRICE_SINGLE_USD  || '',
+      monthly: process.env.PRICE_MONTHLY_USD || '',
+      yearly:  process.env.PRICE_YEARLY_USD  || ''
     },
     fr: {
-      single:  process.env.PRICE_SINGLE_EUR,
-      monthly: process.env.PRICE_MONTHLY_EUR,
-      yearly:  process.env.PRICE_YEARLY_EUR,
+      single:  process.env.PRICE_SINGLE_EUR  || '',
+      monthly: process.env.PRICE_MONTHLY_EUR || '',
+      yearly:  process.env.PRICE_YEARLY_EUR  || ''
     }
   };
-
-  const langKey = lang === 'fr' ? 'fr' : 'en';
-  const priceId = PRICE_MAP[langKey][plan];
-
+ 
+  var langKey = lang === 'fr' ? 'fr' : 'en';
+  var priceId = (PRICE_MAP[langKey] || {})[plan] || '';
+ 
   if (!priceId) {
-    return res.status(200).json({ url: null, error: 'Price not configured' });
+    return res.status(200).json({ url: null, message: 'Price ID not configured for this plan' });
   }
-
+ 
   try {
-    const stripe = Stripe(STRIPE_SECRET_KEY);
-    const mode = plan === 'single' ? 'payment' : 'subscription';
-    const siteUrl = process.env.SITE_URL || 'https://mingli-lovat.vercel.app';
-
-    const session = await stripe.checkout.sessions.create({
+    var stripe = require('stripe')(STRIPE_SECRET_KEY);
+    var mode   = plan === 'single' ? 'payment' : 'subscription';
+    var siteUrl = process.env.SITE_URL || 'https://mingli-lovat.vercel.app';
+ 
+    var session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      mode,
+      mode: mode,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${siteUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/`,
-      locale: langKey === 'fr' ? 'fr' : 'en',
+      success_url: siteUrl + '/success.html?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url:  siteUrl + '/',
+      locale: langKey === 'fr' ? 'fr' : 'en'
     });
-
-    res.status(200).json({ url: session.url });
-
+ 
+    return res.status(200).json({ url: session.url });
+ 
   } catch (err) {
     console.error('Stripe error:', err.message);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
-}
+};
