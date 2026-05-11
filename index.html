@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#07080F">
 <meta name="description" content="Ancient Chinese destiny reading — BaZi & Zi Wei Dou Shu. Discover what your birth chart reveals about career, love, wealth and the year ahead.">
 <title>Ming Li · Destiny Reading</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -251,7 +254,7 @@ canvas#stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:n
     <div class="form-grid">
       <div class="field">
         <label id="t-label-dob">Date of Birth</label>
-        <input type="date" id="birthday" lang="en"/>
+        <input type="date" id="birthday" lang="en-US" placeholder="YYYY-MM-DD"/>
       </div>
       <div class="field">
         <label id="t-label-tob">Time of Birth</label>
@@ -896,43 +899,72 @@ const PLAN_KEYS = {
   yearly:  {titleKey:'modal-yearly-title',  subKey:'modal-yearly-sub'}
 };
 
-document.querySelectorAll('.buy-btn').forEach(btn => {
-  btn.addEventListener('click', () => openModal(btn.dataset.plan));
+// Use event delegation to avoid binding issues with dynamically-shown elements
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.buy-btn');
+  if (btn && btn.dataset.plan) openModal(btn.dataset.plan);
 });
 
 function openModal(plan) {
-  // Save current form data before payment
-  const birthday  = document.getElementById('birthday').value;
-  const birthtime = document.getElementById('birthtime').value;
-  const gender    = document.getElementById('gender').value;
-  const location  = document.getElementById('location').value.trim();
-
-  if (birthday && birthtime && gender && location) {
-    localStorage.setItem('mingli_reading_data', JSON.stringify({ birthday, birthtime, gender, location }));
-    localStorage.setItem('mingli_plan', plan);
-    localStorage.setItem('mingli_lang', LANG);
-  }
-
   const pk = PLAN_KEYS[plan];
-  // ... 其余代码不变
+  if (!pk) return;
+  const D = DATA[LANG];
+  document.getElementById('modalTitle').textContent    = D[pk.titleKey];
+  document.getElementById('modalSub').textContent      = D[pk.subKey];
+  document.getElementById('modalPrice').textContent    = PRICES[LANG][plan];
+  document.getElementById('modalTrust').textContent    = D['modal-trust'];
+  document.getElementById('modalNote').textContent     = D['modal-note'];
+  const isFree = plan === 'free';
+  document.getElementById('stripeBtn').textContent     = isFree ? D['modal-free-btn'] : D['modal-btn'];
+  document.getElementById('modalCloseBtn').textContent = D['modal-close'];
+  document.getElementById('stripeBtn').onclick = () => isFree ? closeModal() : initiatePayment(plan);
+  document.getElementById('payModal').classList.add('open');
 }
-function closeFreeModal(){ closeModal(); }
-function closeModal(){ document.getElementById('payModal').classList.remove('open'); }
+
+function closeModal() { document.getElementById('payModal').classList.remove('open'); }
 document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
 document.getElementById('payModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
 
 async function initiatePayment(plan) {
+  // Save birth data to localStorage before redirecting to Stripe
+  const birthday  = document.getElementById('birthday').value;
+  const birthtime = document.getElementById('birthtime').value;
+  const gender    = document.getElementById('gender').value;
+  const location  = document.getElementById('location').value.trim();
+  if (birthday && birthtime && gender && location) {
+    try {
+      localStorage.setItem('mingli_reading_data', JSON.stringify({ birthday, birthtime, gender, location }));
+      localStorage.setItem('mingli_plan', plan);
+      localStorage.setItem('mingli_lang', LANG);
+    } catch(e) { /* localStorage blocked — continue anyway */ }
+  }
+
+  // Show loading state on button
+  const btn = document.getElementById('stripeBtn');
+  const orig = btn.textContent;
+  btn.textContent = LANG === 'fr' ? 'Redirection…' : 'Redirecting…';
+  btn.disabled = true;
+
   try {
     const res = await fetch('/api/checkout', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({plan, lang: LANG})
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, lang: LANG })
     });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || 'No URL returned');
+    }
   } catch(e) {
+    btn.textContent = orig;
+    btn.disabled = false;
     alert(LANG === 'fr'
-      ? 'Paiement bientôt disponible. Intégration Stripe requise.'
-      : 'Payment coming soon. Stripe integration required.');
+      ? 'Impossible de se connecter au paiement. Veuillez réessayer.'
+      : 'Unable to connect to payment. Please try again.');
+    console.error('Payment error:', e.message);
   }
 }
 
