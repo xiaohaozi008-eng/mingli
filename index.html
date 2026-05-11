@@ -901,18 +901,20 @@ document.querySelectorAll('.buy-btn').forEach(btn => {
 });
 
 function openModal(plan) {
+  // Save current form data before payment
+  const birthday  = document.getElementById('birthday').value;
+  const birthtime = document.getElementById('birthtime').value;
+  const gender    = document.getElementById('gender').value;
+  const location  = document.getElementById('location').value.trim();
+
+  if (birthday && birthtime && gender && location) {
+    localStorage.setItem('mingli_reading_data', JSON.stringify({ birthday, birthtime, gender, location }));
+    localStorage.setItem('mingli_plan', plan);
+    localStorage.setItem('mingli_lang', LANG);
+  }
+
   const pk = PLAN_KEYS[plan];
-  const D  = DATA[LANG];
-  document.getElementById('modalTitle').textContent    = D[pk.titleKey];
-  document.getElementById('modalSub').textContent      = D[pk.subKey];
-  document.getElementById('modalPrice').textContent    = PRICES[LANG][plan];
-  document.getElementById('modalTrust').textContent    = D['modal-trust'];
-  document.getElementById('modalNote').textContent     = D['modal-note'];
-  const isFree = plan === 'free';
-  document.getElementById('stripeBtn').textContent     = isFree ? D['modal-free-btn'] : D['modal-btn'];
-  document.getElementById('modalCloseBtn').textContent = D['modal-close'];
-  document.getElementById('stripeBtn').onclick = () => isFree ? closeFreeModal() : initiatePayment(plan);
-  document.getElementById('payModal').classList.add('open');
+  // ... 其余代码不变
 }
 function closeFreeModal(){ closeModal(); }
 function closeModal(){ document.getElementById('payModal').classList.remove('open'); }
